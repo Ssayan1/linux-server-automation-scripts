@@ -90,7 +90,7 @@ done
 
 # ─── 2. Memory Usage ──────────────────────────────────────────────────────────
 header "Memory Usage"
-read -r mem_total mem_used mem_free mem_shared mem_buff mem_avail \
+read -r mem_total mem_used _ _ _ _ \
     < <(free -m | awk 'NR==2 {print $2, $3, $4, $5, $6, $7}')
 mem_pct=$(( mem_used * 100 / mem_total ))
 swap_line=$(free -m | awk '/^Swap/ {print $2, $3, $4}')
