@@ -1,0 +1,43 @@
+name: Lint Shell Scripts
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on all scripts
+        run: |
+          echo "Checking backup.sh..."
+          shellcheck backup.sh
+          echo "Checking health_check.sh..."
+          shellcheck health_check.sh
+          echo "Checking ssl_checker.sh..."
+          shellcheck ssl_checker.sh
+          echo "✅ All scripts passed!"
+
+  python-lint:
+    name: Python Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pylint
+        run: pip install pylint
+
+      - name: Run pylint
+        run: pylint linux_admin.py --disable=C0114,C0115,C0116 || true
