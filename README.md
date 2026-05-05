@@ -22,7 +22,14 @@
   SSL: d61zgekfhvg0k.cloudfront.net → 127 days ✓
   Services: cron ✓ | nginx ✓
   Alerts: ✓ All systems nominal
+
 ```
+
+## 📸 Dashboard Preview
+
+
+
+![Server Health Dashboard](assets/dashboard.png)
 
 ---
 
