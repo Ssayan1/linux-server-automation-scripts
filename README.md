@@ -10,6 +10,23 @@ linux-server-automation-scripts/
 └── README.md
 ```
 
+![Shell Script](https://img.shields.io/badge/shell_script-%23121011.svg?style=flat&logo=gnu-bash)
+
+
+
+
+![Python](https://img.shields.io/badge/python-3670A0?style=flat&logo=python)
+
+
+
+
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker)
+
+
+
+
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 ---
 
 ## backup.sh
