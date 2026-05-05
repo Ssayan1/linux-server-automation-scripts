@@ -1,186 +1,350 @@
-# linux-server-automation-scripts
+# 🖥️ Linux Server Automation Scripts
 
-Practical Linux sysadmin automation — backup, health monitoring, log analysis, and user management.
+![Shell Script](https://img.shields.io/badge/shell_script-%23121011.svg?style=flat&logo=gnu-bash&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=flat&logo=python&logoColor=ffdd54)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=flat&logo=amazon-aws&logoColor=white)
+![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=flat&logo=githubactions&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+> A production-grade Linux server automation toolkit featuring backup management, real-time health monitoring, SSL certificate tracking, firewall auditing, cloud storage integration, and an HTML dashboard — all with Telegram alerts.
+
+---
+
+## 📸 Dashboard Preview
+
+```
+🖥️  SYSWATCH — Live Server Dashboard
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Disk: 3% ██░░░░░░░░  RAM: 31% ███░░░░░░░
+  Load: 0.06 (1m) | Cores: 2 | Uptime: 3 days
+  SSL: d61zgekfhvg0k.cloudfront.net → 127 days ✓
+  Services: cron ✓ | nginx ✓
+  Alerts: ✓ All systems nominal
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 linux-server-automation-scripts/
-├── backup.sh          # Folder + MySQL/PostgreSQL backup with retention
-├── health_check.sh    # Disk / memory / CPU / service monitor with email alerts
-├── linux_admin.py     # Log analyser + user/group management CLI
-└── README.md
+├── 📜 backup.sh               # Folder + MySQL/PostgreSQL backup
+├── 📜 health_check.sh         # Disk, memory, CPU, service monitor
+├── 📜 ssl_checker.sh          # SSL certificate expiry checker
+├── 📜 firewall_audit.sh       # UFW + open ports security audit
+├── 📜 s3_backup.sh            # AWS S3 cloud backup upload
+├── 🐍 linux_admin.py          # Log analysis + user/group management
+├── 🐍 generate_dashboard.py   # HTML health dashboard generator
+├── 🐳 Dockerfile              # Containerized environment
+├── 🐳 docker-entrypoint.sh    # Docker command router
+├── 🐳 docker-compose.yml      # Multi-service orchestration
+├── 🧪 tests/
+│   └── test_linux_admin.py    # 22 unit tests (pytest)
+├── ⚙️  .github/
+│   └── workflows/
+│       └── lint.yml           # CI/CD: ShellCheck + Pylint
+└── 📖 README.md
 ```
-
-![Shell Script](https://img.shields.io/badge/shell_script-%23121011.svg?style=flat&logo=gnu-bash)
-
-
-
-
-![Python](https://img.shields.io/badge/python-3670A0?style=flat&logo=python)
-
-
-
-
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker)
-
-
-
-
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
-## backup.sh
+## ✨ Features
 
-Backs up directories and databases, writes SHA-256 checksums, and prunes old backups.
+| Script | What it does |
+|--------|-------------|
+| `backup.sh` | Compresses `/etc`, `/home`, `/var/www` into `.tar.gz`, dumps MySQL/PostgreSQL, generates SHA-256 checksums, auto-prunes old backups |
+| `health_check.sh` | Monitors disk, RAM, CPU load, systemd services, zombie processes — sends Telegram alert on issues |
+| `ssl_checker.sh` | Checks SSL certificate expiry for multiple domains, alerts 30 days before expiry |
+| `firewall_audit.sh` | Audits UFW status, scans open ports, detects suspicious ports, reports failed login attempts |
+| `s3_backup.sh` | Uploads backups to AWS S3 with deduplication, STANDARD_IA storage class, 30-day retention |
+| `linux_admin.py` | Analyzes log files by level (ERROR/WARN/INFO), manages users and groups via CLI |
+| `generate_dashboard.py` | Generates a live HTML dashboard with gauges, SSL countdown, and alert history |
 
-**Quick start**
+---
+
+## 🚀 Quick Start
+
+### 1. Clone the repo
 
 ```bash
-chmod +x backup.sh
+git clone https://github.com/Ssayan1/linux-server-automation-scripts.git
+cd linux-server-automation-scripts
+```
 
-# Back up /etc and /home (defaults)
+### 2. Make scripts executable
+
+```bash
+chmod +x backup.sh health_check.sh ssl_checker.sh firewall_audit.sh s3_backup.sh
+```
+
+### 3. Run health check
+
+```bash
+sudo ./health_check.sh
+```
+
+### 4. Run with Docker
+
+```bash
+docker build -t linux-automation .
+docker run --rm linux-automation help
+```
+
+---
+
+## 📋 Script Usage
+
+### 🗄️ backup.sh — Backup Folders & Databases
+
+```bash
+# Basic run (backs up /etc, /home, /var/www)
 sudo ./backup.sh
 
-# With MySQL enabled
-MYSQL_ENABLED=true MYSQL_USER=root MYSQL_PASS=secret \
-  MYSQL_DATABASES="myapp wordpress" sudo ./backup.sh
-
-# With PostgreSQL enabled
-PSQL_ENABLED=true PSQL_DATABASES="myapp" sudo ./backup.sh
-
-# Preview without writing anything
+# Dry run — preview without writing
 sudo ./backup.sh --dry-run
+
+# With MySQL
+MYSQL_ENABLED=true MYSQL_USER=root MYSQL_PASS=secret sudo ./backup.sh
+
+# With PostgreSQL
+PSQL_ENABLED=true PSQL_DATABASES="myapp" sudo ./backup.sh
 ```
 
-**Key environment variables**
+**Environment Variables:**
 
 | Variable | Default | Description |
-|---|---|---|
-| `BACKUP_ROOT` | `/var/backups/server` | Where backups are stored |
-| `RETENTION_DAYS` | `7` | Days to keep old backups |
-| `LOG_FILE` | `/var/log/backup.log` | Log output path |
+|----------|---------|-------------|
+| `BACKUP_ROOT` | `/var/backups/server` | Backup destination |
+| `RETENTION_DAYS` | `7` | Days to keep local backups |
 | `MYSQL_ENABLED` | `false` | Enable MySQL dumps |
-| `MYSQL_DATABASES` | *(blank = all)* | Space-separated DB names |
 | `PSQL_ENABLED` | `false` | Enable PostgreSQL dumps |
-| `PSQL_DATABASES` | *(blank = all)* | Space-separated DB names |
-
-**Cron example** (nightly at 02:00)
-
-```cron
-0 2 * * * MYSQL_ENABLED=true MYSQL_PASS=secret /opt/scripts/backup.sh >> /var/log/backup.log 2>&1
-```
 
 ---
 
-## health_check.sh
-
-Checks disk usage, memory, CPU load average, systemd service status, and zombie processes.
-Logs every run and optionally emails alerts.
-
-**Quick start**
+### 🏥 health_check.sh — Server Health Monitor
 
 ```bash
-chmod +x health_check.sh
+# Basic run
 sudo ./health_check.sh
+
+# With email alerts
 sudo ./health_check.sh --email ops@company.com
-sudo ./health_check.sh --log /var/log/myserver_health.log
+
+# Custom log file
+sudo ./health_check.sh --log /var/log/myserver.log
 ```
 
-**Thresholds (edit at top of file)**
+**Thresholds:**
 
-| Metric | Warn | Critical |
-|---|---|---|
-| Disk usage | 80 % | 90 % |
-| Memory usage | 80 % | 95 % |
-| 1-min load avg | 2.0 | 5.0 |
+| Metric | Warning | Critical |
+|--------|---------|----------|
+| Disk usage | 80% | 90% |
+| Memory usage | 80% | 95% |
+| CPU load (1m) | 2.0 | 5.0 |
 
-**Exit codes**
-
-| Code | Meaning |
-|---|---|
-| `0` | All healthy |
-| `1` | Warnings only |
-| `2` | At least one critical |
-
-**Cron example** (every 15 minutes)
-
-```cron
-*/15 * * * * /opt/scripts/health_check.sh --email ops@company.com
-```
+**Exit codes:** `0` = healthy · `1` = warnings · `2` = critical
 
 ---
 
-## linux_admin.py
-
-A Python CLI with two capabilities: **log analysis** and **user/group management**.
+### 🔐 ssl_checker.sh — SSL Certificate Monitor
 
 ```bash
-chmod +x linux_admin.py
-python3 linux_admin.py --help
+sudo ./ssl_checker.sh
 ```
 
-### Log analysis
+Checks domains defined in the `DOMAINS` array and sends Telegram alerts when certificates expire within 30 days (warning) or 7 days (critical).
+
+---
+
+### 🔥 firewall_audit.sh — Security Audit
 
 ```bash
-# Count ERROR lines in a log
+sudo ./firewall_audit.sh
+```
+
+Checks:
+- UFW firewall active/inactive status
+- All open ports against a whitelist
+- Known suspicious ports (4444, 1337, 31337, 6666)
+- Active network connections
+- Failed SSH login attempts
+
+---
+
+### ☁️ s3_backup.sh — AWS S3 Upload
+
+```bash
+# Configure AWS first
+aws configure
+
+# Upload latest backup
+sudo ./s3_backup.sh
+```
+
+Uploads to `STANDARD_IA` storage class (60% cheaper than standard). Auto-prunes backups older than 30 days.
+
+---
+
+### 🐍 linux_admin.py — Log Analysis & User Management
+
+```bash
+# Analyze logs
 python3 linux_admin.py analyze /var/log/syslog
+python3 linux_admin.py analyze /var/log/nginx/error.log --level WARNING --tail 1000 --report report.txt
 
-# Filter for WARNINGS, look at last 1000 lines, save a report
-python3 linux_admin.py analyze /var/log/nginx/error.log \
-    --level WARNING --tail 1000 --report /tmp/nginx_report.txt
-
-# Works with any log: syslog, journald, nginx, apache, python apps…
-python3 linux_admin.py analyze /var/log/auth.log --level ERROR
-```
-
-Sample output:
-
-```
-━━━ Log Analysis: /var/log/syslog ━━━
-  Total lines  : 48,291
-  ERROR        : 12
-  WARNING      : 204
-  INFO         : 47,801
-  DEBUG        : 274
-
-Top error messages
-    5×  Connection refused: 127.0.0.1:3306
-    4×  Failed password for invalid user admin
-    3×  Out of memory: Kill process 1821
-```
-
-### User & group management (requires root / sudo)
-
-```bash
-# Add a user with home directory, shell, and groups
-sudo python3 linux_admin.py adduser alice \
-    --comment "Alice Smith" --shell /bin/bash --groups sudo,docker
-
-# Create a group with a specific GID
+# User management (requires sudo)
+sudo python3 linux_admin.py adduser alice --groups sudo,docker --comment "Alice Smith"
 sudo python3 linux_admin.py addgroup developers --gid 1500
+sudo python3 linux_admin.py usermod alice --add-groups developers
 
-# Add an existing user to more groups
-sudo python3 linux_admin.py usermod alice --add-groups developers,www-data
-
-# List all human users (UID ≥ 1000)
+# List users & groups
 python3 linux_admin.py listusers --min-uid 1000
-
-# List all groups
 python3 linux_admin.py listgroups
 ```
 
 ---
 
-## Requirements
+### 📊 generate_dashboard.py — HTML Dashboard
 
-| Script | Requirements |
-|---|---|
-| `backup.sh` | bash ≥ 4, `tar`, `gzip`; `mysqldump` for MySQL; `pg_dump` for PostgreSQL |
-| `health_check.sh` | bash ≥ 4, `systemctl`, `bc`, `df`, `free`; `mail` or `sendmail` for email alerts |
-| `linux_admin.py` | Python 3.8+, stdlib only (no pip installs needed) |
+```bash
+# Generate dashboard
+python3 generate_dashboard.py --output /tmp/dashboard.html
+
+# Open in browser (WSL)
+cp /tmp/dashboard.html /mnt/c/Users/YourName/Desktop/dashboard.html
+```
+
+Dashboard auto-refreshes every 60 seconds and shows disk/memory gauges, CPU load, SSL expiry, service status, and recent alerts.
 
 ---
 
-## License
+## 🐳 Docker Usage
 
-MIT
+```bash
+# Build
+docker build -t linux-automation .
+
+# Available commands
+docker run --rm linux-automation help
+docker run --rm linux-automation health
+docker run --rm linux-automation ssl
+docker run --rm linux-automation test
+docker run --rm linux-automation firewall
+docker run --rm linux-automation dashboard
+docker run --rm linux-automation all
+
+# Admin tool
+docker run --rm linux-automation admin listusers
+docker run --rm linux-automation admin analyze /var/log/syslog
+
+# Mount host logs
+docker run --rm -v /var/log:/var/log linux-automation health
+```
+
+---
+
+## ⏰ Cron Automation
+
+```bash
+sudo crontab -e
+```
+
+```cron
+# Backup every night at 2 AM
+0 2 * * * /home/user/linux-server-automation-scripts/backup.sh
+
+# Upload to S3 at 2:30 AM
+30 2 * * * /home/user/linux-server-automation-scripts/s3_backup.sh
+
+# Health check every 15 minutes
+*/15 * * * * /home/user/linux-server-automation-scripts/health_check.sh
+
+# SSL check every day at 9 AM
+0 9 * * * /home/user/linux-server-automation-scripts/ssl_checker.sh
+
+# Firewall audit every hour
+0 * * * * /home/user/linux-server-automation-scripts/firewall_audit.sh
+
+# Dashboard refresh every 5 minutes
+*/5 * * * * python3 /home/user/linux-server-automation-scripts/generate_dashboard.py
+```
+
+---
+
+## 📱 Telegram Alerts Setup
+
+1. Open Telegram → search **@BotFather** → send `/newbot`
+2. Save the token it gives you
+3. Send a message to your bot, then get your chat ID:
+   ```bash
+   curl -s "https://api.telegram.org/botYOUR_TOKEN/getUpdates" | python3 -c \
+   "import sys,json; u=json.load(sys.stdin)['result']; print(u[-1]['message']['chat']['id'])"
+   ```
+4. Add to each script:
+   ```bash
+   TELEGRAM_TOKEN="your_token_here"
+   TELEGRAM_CHAT_ID="your_chat_id"
+   TELEGRAM_ENABLED=true
+   ```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Install pytest
+pip install pytest --break-system-packages
+
+# Run all 22 tests
+python3 -m pytest tests/ -v
+
+# Run in Docker
+docker run --rm linux-automation test
+```
+
+```
+22 passed in 0.05s ✅
+```
+
+---
+
+## ⚙️ Requirements
+
+| Script | Requirements |
+|--------|-------------|
+| `backup.sh` | bash ≥ 4, tar, gzip; mysqldump (MySQL); pg_dump (PostgreSQL) |
+| `health_check.sh` | bash ≥ 4, systemctl, bc, df, free |
+| `ssl_checker.sh` | bash ≥ 4, openssl, curl |
+| `firewall_audit.sh` | bash ≥ 4, ufw, netstat, ss |
+| `s3_backup.sh` | AWS CLI v2, configured credentials |
+| `linux_admin.py` | Python 3.8+, stdlib only |
+| `generate_dashboard.py` | Python 3.8+, stdlib only |
+
+---
+
+## 🔒 Security Notes
+
+- Never commit AWS credentials or Telegram tokens to Git
+- Add `.env` to `.gitignore`
+- Use IAM roles with minimum required permissions for S3
+- Rotate tokens regularly
+
+---
+
+## 📄 License
+
+MIT License — feel free to use, modify, and distribute.
+
+---
+
+## 👨‍💻 Author
+
+**Sayan** — [@Ssayan1](https://github.com/Ssayan1)
+
+Portfolio: [d61zgekfhvg0k.cloudfront.net](https://d61zgekfhvg0k.cloudfront.net)
+
+---
+
+⭐ **Star this repo if you found it useful!**
