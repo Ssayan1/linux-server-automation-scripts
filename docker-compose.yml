@@ -1,0 +1,42 @@
+# =============================================================================
+# docker-compose.yml — Linux Server Automation
+# Usage: docker-compose up
+# =============================================================================
+
+version: '3.8'
+
+services:
+
+  # ── Health Check (runs once) ───────────────────────────────────────────────
+  health:
+    build: .
+    container_name: linux-health
+    command: health
+    volumes:
+      - /var/log:/var/log:ro        # read host logs
+      - /proc:/host/proc:ro         # read host metrics
+    network_mode: host
+    restart: "no"
+
+  # ── SSL Checker (runs once) ────────────────────────────────────────────────
+  ssl:
+    build: .
+    container_name: linux-ssl
+    command: ssl
+    restart: "no"
+
+  # ── Dashboard Generator ────────────────────────────────────────────────────
+  dashboard:
+    build: .
+    container_name: linux-dashboard
+    command: dashboard
+    volumes:
+      - ./dashboard:/tmp            # save dashboard.html here
+    restart: "no"
+
+  # ── Unit Tests ────────────────────────────────────────────────────────────
+  test:
+    build: .
+    container_name: linux-tests
+    command: test
+    restart: "no"
