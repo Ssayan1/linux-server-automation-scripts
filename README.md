@@ -25,10 +25,6 @@
 
 ```
 
-## 📸 Dashboard Preview
-
-
-
 ![Server Health Dashboard](assets/dashboard.png)
 
 ---
